@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cookie & Boo Boo 🍪💕</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&display=swap');
+
+  :root {
+    --sky: #1a0533;
+    --pink: #ff6eb4;
+    --yellow: #ffe066;
+    --cream: #fff5d6;
+    --purple: #9b59b6;
+    --teal: #00c9c9;
+    --red: #ff4466;
+    --dark: #0d0020;
+    --star: #fffbe6;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; image-rendering: pixelated; }
+
+  body {
+    background: var(--dark);
+    font-family: 'Press Start 2P', monospace;
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+
+  /* TITLE SCREEN */
+  #title-screen {
+    position: fixed; inset: 0;
+    background: var(--dark);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    z-index: 100;
+    gap: 20px;
+  }
+
+  .title-text {
+    font-family: 'Press Start 2P', monospace;
+    font-size: clamp(18px, 4vw, 36px);
+    color: var(--pink);
+    text-shadow: 4px 4px 0 #7a0040, 8px 8px 0 #3d0020;
+    animation: titlePulse 1.5s ease-in-out infinite;
+    text-align: center;
+    line-height: 1.6;
+  }
+
+  .subtitle {
+    font-family: 'VT323', monospace;
+    font-size: clamp(16px, 3vw, 24px);
+    color: var(--yellow);
+    text-align: center;
+    letter-spacing: 2px;
+  }
+
+  .start-btn {
+    margin-top: 30px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: clamp(10px, 2vw, 14px);
+    color: var(--dark);
+    background: var(--pink);
+    border: none;
+    padding: 16px 32px;
+    cursor: pointer;
+    box-shadow: 4px 4px 0 #7a0040;
+    transition: transform 0.1s, box-shadow 0.1s;
+    animation: blink 1s step-end infinite;
+  }
+  .start-btn:hover { transform: translate(2px,2px); box-shadow: 2px 2px 0 #7a0040; animation: none; background: var(--yellow); }
+
+  /* MAIN GAME */
+  #game-container {
+    display: none;
+    min-height: 100vh;
+    position: relative;
+  }
+
+  /* STARFIELD */
+  #starfield {
+    position: fixed; inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .star {
+    position: absolute;
+    background: white;
+    animation: twinkle var(--dur, 2s) ease-in-out infinite;
+  }
+
+  /* SCENE */
+  #scene {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 1;
+    padding: 20px;
+  }
+
+  /* PROGRESS BAR */
+  #progress-bar {
+    position: fixed; top: 0; left: 0; right: 0;
+    height: 8px; background: #111;
+    z-index: 50;
+  }
+  #progress-fill {
+    height: 100%; background: linear-gradient(90deg, var(--pink), var(--yellow));
+    transition: width 0.5s ease;
+    width: 0%;
+  }
+
+  /* SCENE LABEL */
+  .scene-label {
+    font-family: 'VT323', monospace;
+    font-size: 16px;
+    color: var(--purple);
+    margin-top: 16px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+
+  /* WORLD VIEW — two sides */
+  #world {
+    display: flex;
+    width: 100%;
+    max-width: 900px;
+    gap: 0;
+    margin: 20px auto 0;
+    position: relative;
+  }
+
+  .side {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    padding: 10px;
+  }
+
+  .divider {
+    width: 4px;
+    background: repeating-linear-gradient(
+      to bottom,
+      var(--pink) 0px, var(--pink) 8px,
+      transparent 8px, transparent 16px
+    );
+    opacity: 0.4;
+    flex-shrink: 0;
+  }
+
+  /* LOCATION LABELS */
+  .location-tag {
+    font-family: 'VT323', monospace;
+    font-size: 18px;
+    padding: 6px 16px;
+    border: 2px solid currentColor;
+    margin-bottom: 10px;
+    letter-spacing: 2px;
+  }
+  .india-tag { color: var(--yellow); border-color: var(--yellow); }
+  .aus-tag { color: var(--teal); border-color: var(--teal); }
+
+  /* PIXEL ART CANVAS */
+  .pixel-scene {
+    width: 160px; height: 160px;
+    position: relative;
+    margin-bottom: 10px;
+  }
+
+  /* CHARACTER SPRITES via CSS pixel art */
+  .char-sprite {
+    position: absolute;
+    bottom: 20px;
+    image-rendering: pixelated;
+  }
+
+  /* BOO BOO — Indian girl pixel art */
+  .booboo {
+    left: 50%;
+    transform: translateX(-50%);
+    width: 32px; height: 48px;
+    animation: charFloat 3s ease-in-out infinite;
+  }
+
+  /* COOKIE — Aussie dude pixel art */
+  .cookie {
+    left: 50%;
+    transform: translateX(-50%);
+    width: 32px; height: 48px;
+    animation: charFloat 3s ease-in-out infinite 0.5s;
+  }
+
+  /* DIALOGUE BOX */
+  .dialogue-box {
+    background: rgba(13,0,32,0.95);
+    border: 3px solid var(--pink);
+    box-shadow: 0 0 0 2px var(--dark), 0 0 20px rgba(255,110,180,0.3);
+    padding: 16px 20px;
+    max-width: 900px;
+    width: 100%;
+    margin: 10px auto;
+    position: relative;
+    min-height: 80px;
+  }
+
+  .dialogue-speaker {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px;
+    margin-bottom: 8px;
+  }
+  .speaker-cookie { color: var(--teal); }
+  .speaker-booboo { color: var(--pink); }
+  .speaker-narrator { color: var(--yellow); }
+
+  .dialogue-text {
+    font-family: 'VT323', monospace;
+    font-size: 22px;
+    color: var(--cream);
+    line-height: 1.5;
+    min-height: 40px;
+  }
+
+  .cursor-blink {
+    display: inline-block;
+    width: 10px; height: 18px;
+    background: var(--cream);
+    animation: blink 0.7s step-end infinite;
+    vertical-align: bottom;
+    margin-left: 2px;
+  }
+
+  /* NAVIGATION */
+  .nav-row {
+    display: flex;
+    gap: 16px;
+    margin: 20px auto;
+    max-width: 900px;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .nav-btn {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    padding: 12px 20px;
+    border: none;
+    cursor: pointer;
+    box-shadow: 4px 4px 0 rgba(0,0,0,0.5);
+    transition: transform 0.1s, box-shadow 0.1s;
+    min-width: 120px;
+  }
+  .nav-btn:hover { transform: translate(2px,2px); box-shadow: 2px 2px 0 rgba(0,0,0,0.5); }
+  .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+
+  .btn-prev { background: var(--purple); color: white; }
+  .btn-next { background: var(--pink); color: white; }
+
+  /* HEARTS FLOATING */
+  .heart-float {
+    position: fixed;
+    pointer-events: none;
+    z-index: 10;
+    font-size: 20px;
+    animation: heartRise 3s ease-out forwards;
+  }
+
+  /* PIXEL BUILDINGS / LANDSCAPE */
+  .landscape {
+    width: 100%;
+    height: 80px;
+    position: relative;
+    margin-bottom: 5px;
+  }
+
+  /* MINI MAP */
+  #mini-map {
+    width: 220px;
+    height: 100px;
+    border: 2px solid var(--purple);
+    background: #0a0020;
+    position: relative;
+    margin: 0 auto 10px;
+    overflow: hidden;
+  }
+
+  .map-dot {
+    width: 8px; height: 8px;
+    border-radius: 0;
+    position: absolute;
+    animation: mapPulse 1.5s ease-in-out infinite;
+  }
+
+  .dot-india {
+    background: var(--yellow);
+    right: 30%; top: 30%;
+  }
+  .dot-aus {
+    background: var(--teal);
+    right: 5%; bottom: 30%;
+  }
+
+  .map-line {
+    position: absolute;
+    border-top: 2px dashed var(--pink);
+    transform-origin: left center;
+    opacity: 0.6;
+  }
+
+  /* SCENE TRANSITIONS */
+  .scene-fade {
+    animation: sceneFadeIn 0.6s ease;
+  }
+
+  /* HEART METER */
+  .heart-meter {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    margin: 8px 0;
+  }
+  .h-full { color: var(--red); font-size: 18px; }
+  .h-empty { color: #333; font-size: 18px; }
+
+  /* FINAL SCREEN */
+  #final-screen {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    text-align: center;
+    padding: 40px 20px;
+    gap: 20px;
+  }
+
+  .final-title {
+    font-family: 'Press Start 2P', monospace;
+    font-size: clamp(12px, 3vw, 24px);
+    color: var(--pink);
+    text-shadow: 4px 4px 0 #7a0040;
+    animation: titlePulse 1.5s ease-in-out infinite;
+    line-height: 1.8;
+  }
+
+  .final-message {
+    font-family: 'VT323', monospace;
+    font-size: clamp(18px, 3vw, 28px);
+    color: var(--cream);
+    max-width: 600px;
+    line-height: 1.6;
+  }
+
+  /* TYPEWRITER */
+  .typewriter-text { display: inline; }
+
+  /* SCORE / LOVE POINTS */
+  #love-meter {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px;
+    color: var(--pink);
+    margin-bottom: 4px;
+    text-align: center;
+  }
+
+  /* SKY COLORS per scene */
+  .sky-morning { background: linear-gradient(180deg, #1a0533 0%, #3d1a6e 100%); }
+  .sky-evening { background: linear-gradient(180deg, #0d0020 0%, #2d0a4e 50%, #1a0533 100%); }
+  .sky-night { background: linear-gradient(180deg, #000010 0%, #0d0020 100%); }
+
+  /* INTERACTIVE CHOICE BUTTONS */
+  .choice-container {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 10px auto;
+    max-width: 900px;
+  }
+
+  .choice-btn {
+    font-family: 'VT323', monospace;
+    font-size: 18px;
+    padding: 10px 20px;
+    border: 2px solid var(--pink);
+    background: transparent;
+    color: var(--cream);
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 1px;
+  }
+  .choice-btn:hover { background: var(--pink); color: var(--dark); }
+  .choice-btn.selected { background: var(--yellow); border-color: var(--yellow); color: var(--dark); }
+
+  /* PIXEL ANIMATIONS */
+  @keyframes charFloat {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50% { transform: translateX(-50%) translateY(-6px); }
+  }
+  @keyframes titlePulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.03); }
+  }
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.2; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.5); }
+  }
+  @keyframes heartRise {
+    0% { opacity: 1; transform: translateY(0) scale(1); }
+    100% { opacity: 0; transform: translateY(-200px) scale(0.3); }
+  }
+  @keyframes mapPulse {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 currentColor; }
+    50% { transform: scale(1.3); box-shadow: 0 0 8px 4px currentColor; }
+  }
+  @keyframes sceneFadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes waveAnim {
+    0%, 100% { transform: rotate(-10deg); }
+    50% { transform: rotate(10deg); }
+  }
+  @keyframes phoneVibrate {
+    0%, 100% { transform: translateX(-50%) rotate(0deg); }
+    25% { transform: translateX(-50%) rotate(-5deg); }
+    75% { transform: translateX(-50%) rotate(5deg); }
+  }
+  @keyframes floatAcross {
+    0% { left: -20px; }
+    100% { left: 110%; }
+  }
+  @keyframes shimmer {
+    0% { opacity: 0.5; }
+    50% { opacity: 1; }
+    100% { opacity: 0.5; }
+  }
+</style>
+</head>
+<body>
+
+<!-- STARFIELD -->
+<canvas id="starfield"></canvas>
+
+<!-- TITLE SCREEN -->
+<div id="title-screen">
+  <div style="font-size:48px; margin-bottom:10px;">🍪 💕 🐻</div>
+  <div class="title-text">COOKIE &<br>BOO BOO</div>
+  <div class="subtitle">— A PIXEL LOVE STORY —</div>
+  <div style="font-family:'VT323',monospace; color:#9b59b6; font-size:16px; margin-top:10px; letter-spacing:2px;">[ AUSTRALIA ↔ INDIA ]</div>
+  <div class="heart-meter" style="margin-top:16px;">
+    <span class="h-full">♥</span><span class="h-full">♥</span><span class="h-full">♥</span><span class="h-full">♥</span><span class="h-full">♥</span>
+  </div>
+  <button class="start-btn" onclick="startGame()">▶ START GAME</button>
+  <div style="font-family:'VT323',monospace; color:#555; font-size:14px; margin-top:20px; letter-spacing:1px;">FOR BOO BOO, FROM COOKIE 🍪</div>
+</div>
+
+<!-- GAME CONTAINER -->
+<div id="game-container">
+  <div id="progress-bar"><div id="progress-fill"></div></div>
+
+  <div id="scene" class="scene-fade">
+    <div class="scene-label" id="scene-label">SCENE 1 / 8</div>
+    <div id="love-meter">LOVE POWER: ♥♥♥♥♥</div>
+
+    <!-- WORLD VIEW -->
+    <div id="world">
+      <div class="side" id="india-side">
+        <div class="location-tag india-tag">📍 AGRA, INDIA</div>
+        <div class="landscape" id="india-landscape"></div>
+        <canvas class="pixel-scene" id="booboo-canvas" width="160" height="160"></canvas>
+        <div style="font-family:'VT323',monospace; font-size:20px; color:var(--pink); margin-top:5px;">BOO BOO 🌸</div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="side" id="aus-side">
+        <div class="location-tag aus-tag">📍 PERTH, AUSTRALIA</div>
+        <div class="landscape" id="aus-landscape"></div>
+        <canvas class="pixel-scene" id="cookie-canvas" width="160" height="160"></canvas>
+        <div style="font-family:'VT323',monospace; font-size:20px; color:var(--teal); margin-top:5px;">COOKIE 🍪</div>
+      </div>
+    </div>
+
+    <!-- MINI MAP -->
+    <div id="mini-map">
+      <canvas id="map-canvas" width="220" height="100"></canvas>
+    </div>
+
+    <!-- DIALOGUE -->
+    <div class="dialogue-box" id="dialogue-box">
+      <div class="dialogue-speaker" id="dialogue-speaker"></div>
+      <div class="dialogue-text" id="dialogue-text"><span class="cursor-blink"></span></div>
+    </div>
+
+    <!-- CHOICES -->
+    <div class="choice-container" id="choices-container"></div>
+
+    <!-- NAV -->
+    <div class="nav-row">
+      <button class="nav-btn btn-prev" id="prev-btn" onclick="prevScene()" disabled>◀ BACK</button>
+      <button class="nav-btn btn-next" id="next-btn" onclick="nextScene()">NEXT ▶</button>
+    </div>
+  </div>
+</div>
+
+<!-- FINAL SCREEN -->
+<div id="final-screen">
+  <div style="font-size:60px; animation: titlePulse 1s infinite;">💕</div>
+  <div class="final-title">THE END<br>(FOR NOW...)</div>
+  <div class="final-message" id="final-message"></div>
+  <div class="heart-meter" style="margin: 10px 0;">
+    <span class="h-full">♥</span><span class="h-full">♥</span><span class="h-full">♥</span><span class="h-full">♥</span><span class="h-full">♥</span>
+    <span class="h-full">♥</span><span class="h-full">♥</span><span class="h-full">♥</span><span class="h-full">♥</span><span class="h-full">♥</span>
+  </div>
+  <button class="start-btn" onclick="replayGame()" style="animation:none; margin-top:0;">🔁 PLAY AGAIN</button>
+  <div style="font-family:'VT323',monospace; color:#555; font-size:14px; margin-top:16px; letter-spacing:1px;">MADE WITH ♥ BY COOKIE FOR BOO BOO</div>
+</div>
+
+<script>
+// ===== STARFIELD =====
+const starCanvas = document.getElementById('starfield');
+const starCtx = starCanvas.getContext('2d');
+let stars = [];
+
+function resizeStarfield() {
+  starCanvas.width = window.innerWidth;
+  starCanvas.height = window.innerHeight;
+  stars = Array.from({length: 120}, () => ({
+    x: Math.random() * starCanvas.width,
+    y: Math.random() * starCanvas.height,
+    size: Math.random() < 0.8 ? 1 : 2,
+    blink: Math.random(),
+    speed: Math.random() * 0.02 + 0.005
+  }));
+}
+window.addEventListener('resize', resizeStarfield);
+resizeStarfield();
+
+function animateStars() {
+  starCtx.clearRect(0, 0, starCanvas.width, starCanvas.height);
+  stars.forEach(s => {
+    s.blink = (s.blink + s.speed) % 1;
+    const alpha = 0.3 + Math.sin(s.blink * Math.PI * 2) * 0.4;
+    starCtx.fillStyle = `rgba(255,255,240,${alpha})`;
+    starCtx.fillRect(Math.floor(s.x), Math.floor(s.y), s.size, s.size);
+  });
+  requestAnimationFrame(animateStars);
+}
+animateStars();
+
+// ===== PIXEL ART DRAWING =====
+function drawBooBooo(ctx, frame) {
+  ctx.clearRect(0, 0, 160, 160);
+  const f = frame % 60;
+  const bob = Math.floor(Math.sin(f / 60 * Math.PI * 2) * 3);
+
+  // Background mood — warm evening India
+  const grad = ctx.createLinearGradient(0, 0, 0, 160);
+  grad.addColorStop(0, '#1a0533');
+  grad.addColorStop(1, '#3d1066');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 160, 160);
+
+  // Ground
+  ctx.fillStyle = '#3d2200';
+  ctx.fillRect(0, 130, 160, 30);
+  ctx.fillStyle = '#5a3300';
+  ctx.fillRect(0, 130, 160, 4);
+
+  // Taj Mahal silhouette (tiny pixel)
+  ctx.fillStyle = '#ffffff22';
+  // main dome
+  ctx.fillRect(60, 90, 40, 40);
+  ctx.fillRect(72, 80, 16, 14);
+  ctx.fillRect(78, 72, 4, 10);
+  // minarets
+  ctx.fillRect(48, 100, 6, 30); ctx.fillRect(50, 95, 2, 6);
+  ctx.fillRect(106, 100, 6, 30); ctx.fillRect(108, 95, 2, 6);
+
+  // Stars
+  [[20,20],[40,35],[100,15],[130,40],[15,55],[145,25],[80,10]].forEach(([x,y]) => {
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(x,y,2,2);
+  });
+
+  // Boo Boo pixel sprite
+  const bx = 65, by = 72 + bob;
+  // saree (flowing pink/magenta)
+  ctx.fillStyle = '#ff6eb4';
+  ctx.fillRect(bx+2, by+22, 24, 20);
+  ctx.fillStyle = '#ff9ed4';
+  ctx.fillRect(bx+4, by+22, 4, 20);
+  // dupatta / scarf
+  ctx.fillStyle = '#ffaa00';
+  ctx.fillRect(bx, by+20, 6, 14);
+  ctx.fillRect(bx+22, by+20, 6, 8);
+  // top/blouse
+  ctx.fillStyle = '#cc3377';
+  ctx.fillRect(bx+4, by+14, 16, 10);
+  // arms
+  ctx.fillStyle = '#c68642';
+  ctx.fillRect(bx, by+14, 6, 8);
+  ctx.fillRect(bx+22, by+14, 6, 8);
+  // wave arm (right)
+  if (f < 30) {
+    ctx.fillRect(bx+22, by+10, 6, 6);
+    ctx.fillRect(bx+26, by+6, 4, 6);
+  } else {
+    ctx.fillRect(bx+22, by+12, 6, 6);
+  }
+  // neck
+  ctx.fillStyle = '#c68642';
+  ctx.fillRect(bx+10, by+10, 8, 6);
+  // head
+  ctx.fillStyle = '#c68642';
+  ctx.fillRect(bx+8, by+2, 12, 12);
+  // hair (long dark bun)
+  ctx.fillStyle = '#1a0000';
+  ctx.fillRect(bx+6, by, 16, 4);
+  ctx.fillRect(bx+8, by-4, 12, 6);
+  ctx.fillRect(bx+18, by-2, 4, 8);
+  // bindi
+  ctx.fillStyle = '#ff0044';
+  ctx.fillRect(bx+13, by+4, 2, 2);
+  // eyes
+  ctx.fillStyle = '#000';
+  ctx.fillRect(bx+10, by+6, 2, 2);
+  ctx.fillRect(bx+15, by+6, 2, 2);
+  // smile
+  ctx.fillStyle = '#cc4466';
+  ctx.fillRect(bx+11, by+9, 5, 1);
+  ctx.fillRect(bx+10, by+8, 1, 2);
+  ctx.fillRect(bx+16, by+8, 1, 2);
+  // necklace
+  ctx.fillStyle = '#ffcc00';
+  ctx.fillRect(bx+9, by+12, 10, 2);
+
+  // phone in hand (sometimes)
+  if (f > 20 && f < 50) {
+    ctx.fillStyle = '#222';
+    ctx.fillRect(bx+0, by+16, 4, 6);
+    ctx.fillStyle = '#0099ff';
+    ctx.fillRect(bx+1, by+17, 2, 4);
+  }
+
+  // floating hearts
+  if (f % 20 < 5) {
+    ctx.fillStyle = '#ff6eb4';
+    const hx = bx + 24, hy = by - 10 + Math.floor(f/4);
+    ctx.fillRect(hx, hy+2, 2, 2);
+    ctx.fillRect(hx+2, hy, 2, 4);
+    ctx.fillRect(hx+4, hy+2, 2, 2);
+    ctx.fillRect(hx+1, hy+4, 4, 2);
+    ctx.fillRect(hx+2, hy+6, 2, 2);
+  }
+}
+
+function drawCookie(ctx, frame) {
+  ctx.clearRect(0, 0, 160, 160);
+  const f = frame % 60;
+  const bob = Math.floor(Math.sin(f / 60 * Math.PI * 2) * 3);
+
+  // Background — Perth night sky
+  const grad = ctx.createLinearGradient(0, 0, 0, 160);
+  grad.addColorStop(0, '#000010');
+  grad.addColorStop(1, '#0d0020');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 160, 160);
+
+  // Ground
+  ctx.fillStyle = '#1a3300';
+  ctx.fillRect(0, 130, 160, 30);
+  ctx.fillStyle = '#2a5500';
+  ctx.fillRect(0, 130, 160, 4);
+
+  // Perth skyline silhouette
+  ctx.fillStyle = '#00ffaa22';
+  // buildings
+  [[10,60,15,70],[30,70,12,60],[48,50,20,80],[75,65,10,65],[90,55,18,75],[115,70,10,60],[130,45,20,85]].forEach(([x,y,w,h]) => {
+    ctx.fillRect(x, y, w, h);
+    // windows
+    ctx.fillStyle = '#ffff0033';
+    for(let r=0; r<3; r++) for(let c=0; c<2; c++) {
+      ctx.fillRect(x+2+c*5, y+3+r*8, 3, 4);
+    }
+    ctx.fillStyle = '#00ffaa22';
+  });
+
+  // Stars / moon
+  [[15,10],[45,20],[85,8],[115,15],[140,30],[10,35],[70,28]].forEach(([x,y]) => {
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(x,y,2,2);
+  });
+  // Moon
+  ctx.fillStyle = '#fffbe0';
+  ctx.fillRect(132, 8, 14, 14);
+  ctx.fillStyle = '#000010';
+  ctx.fillRect(136, 8, 10, 10);
+
+  // Cookie pixel sprite
+  const cx = 63, cy = 72 + bob;
+  // jeans
+  ctx.fillStyle = '#336699';
+  ctx.fillRect(cx+4, cy+22, 8, 20);
+  ctx.fillRect(cx+14, cy+22, 8, 20);
+  // shirt (teal/casual)
+  ctx.fillStyle = '#00c9c9';
+  ctx.fillRect(cx+2, cy+12, 22, 12);
+  // collar
+  ctx.fillStyle = '#009999';
+  ctx.fillRect(cx+10, cy+12, 6, 4);
+  // arms
+  ctx.fillStyle = '#a06030';
+  ctx.fillRect(cx, cy+12, 4, 10);
+  ctx.fillRect(cx+22, cy+12, 4, 10);
+  // wave arm
+  if (f < 30) {
+    ctx.fillRect(cx-2, cy+8, 4, 6);
+    ctx.fillRect(cx-4, cy+4, 4, 6);
+  } else {
+    ctx.fillRect(cx-2, cy+10, 4, 6);
+  }
+  // neck
+  ctx.fillStyle = '#a06030';
+  ctx.fillRect(cx+10, cy+8, 6, 6);
+  // head
+  ctx.fillStyle = '#a06030';
+  ctx.fillRect(cx+6, cy, 14, 12);
+  // hair (dark, short)
+  ctx.fillStyle = '#1a0a00';
+  ctx.fillRect(cx+4, cy-2, 18, 6);
+  ctx.fillRect(cx+6, cy-4, 14, 4);
+  // eyes
+  ctx.fillStyle = '#000';
+  ctx.fillRect(cx+9, cy+4, 2, 2);
+  ctx.fillRect(cx+15, cy+4, 2, 2);
+  // smile
+  ctx.fillStyle = '#cc6633';
+  ctx.fillRect(cx+10, cy+8, 6, 1);
+  ctx.fillRect(cx+9, cy+7, 1, 2);
+  ctx.fillRect(cx+16, cy+7, 1, 2);
+
+  // phone / laptop
+  if (f > 10 && f < 55) {
+    ctx.fillStyle = '#333';
+    ctx.fillRect(cx+2, cy+18, 8, 6);
+    ctx.fillStyle = '#aaddff';
+    ctx.fillRect(cx+3, cy+19, 6, 4);
+  }
+
+  // cookie logo on shirt
+  ctx.fillStyle = '#8B4513';
+  ctx.fillRect(cx+9, cy+16, 8, 8);
+  ctx.fillStyle = '#D2691E';
+  ctx.fillRect(cx+10, cy+17, 6, 6);
+  ctx.fillStyle = '#1a0000';
+  ctx.fillRect(cx+11, cy+18, 1, 1);
+  ctx.fillRect(cx+13, cy+20, 1, 1);
+  ctx.fillRect(cx+15, cy+19, 1, 1);
+
+  // floating hearts
+  if (f % 15 < 4) {
+    ctx.fillStyle = '#00c9c9';
+    const hx = cx + 28, hy = cy - 15 + Math.floor((f%15)/2);
+    ctx.fillRect(hx, hy+2, 2, 2);
+    ctx.fillRect(hx+2, hy, 2, 4);
+    ctx.fillRect(hx+4, hy+2, 2, 2);
+    ctx.fillRect(hx+1, hy+4, 4, 2);
+    ctx.fillRect(hx+2, hy+6, 2, 2);
+  }
+}
+
+function drawMap(ctx, progress) {
+  ctx.clearRect(0, 0, 220, 100);
+  // simple world outline
+  ctx.fillStyle = '#0a0020';
+  ctx.fillRect(0, 0, 220, 100);
+
+  // India landmass (rough pixel)
+  ctx.fillStyle = '#2d1a4e';
+  [[120,20,30,8],[115,28,40,10],[112,38,44,12],[115,50,40,10],[118,60,34,8],[122,68,26,8],[125,76,18,6]].forEach(([x,y,w,h]) => ctx.fillRect(x,y,w,h));
+
+  // Australia landmass
+  ctx.fillStyle = '#1a3a2e';
+  [[150,55,50,10],[145,65,60,14],[148,79,54,10],[152,89,46,6]].forEach(([x,y,w,h]) => ctx.fillRect(x,y,w,h));
+
+  // Grid lines
+  ctx.strokeStyle = '#1a0a33';
+  ctx.lineWidth = 1;
+  for (let x=0; x<220; x+=20) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,100); ctx.stroke(); }
+  for (let y=0; y<100; y+=20) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(220,y); ctx.stroke(); }
+
+  // Dots
+  const indiaX = 136, indiaY = 55;
+  const ausX = 172, ausY = 72;
+
+  // Animated line
+  ctx.setLineDash([4, 4]);
+  ctx.strokeStyle = '#ff6eb4';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(indiaX, indiaY);
+  const px = indiaX + (ausX - indiaX) * Math.min(progress, 1);
+  const py = indiaY + (ausY - indiaY) * Math.min(progress, 1);
+  ctx.lineTo(px, py);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // India dot
+  ctx.fillStyle = '#ffe066';
+  ctx.fillRect(indiaX-3, indiaY-3, 6, 6);
+  ctx.fillStyle = '#ffe06688';
+  ctx.fillRect(indiaX-5, indiaY-5, 10, 10);
+
+  // Aus dot
+  ctx.fillStyle = '#00c9c9';
+  ctx.fillRect(ausX-3, ausY-3, 6, 6);
+  ctx.fillStyle = '#00c9c988';
+  ctx.fillRect(ausX-5, ausY-5, 10, 10);
+
+  // Labels
+  ctx.fillStyle = '#ffe066';
+  ctx.font = '7px "Press Start 2P", monospace';
+  ctx.fillText('IN', indiaX-6, indiaY-8);
+  ctx.fillStyle = '#00c9c9';
+  ctx.fillText('AU', ausX-6, ausY-8);
+
+  // Flying emoji along path
+  if (progress > 0.05 && progress < 0.95) {
+    const ep = Math.min(progress, 1);
+    const ex = indiaX + (ausX - indiaX) * ep;
+    const ey = indiaY + (ausY - indiaY) * ep;
+    ctx.fillStyle = '#ff6eb4';
+    ctx.font = '12px serif';
+    ctx.fillText('✈', ex - 6, ey + 4);
+  }
+}
+
+// ===== SCENES =====
+const scenes = [
+  {
+    id: 0,
+    label: "MORNING ROUTINE",
+    indiaTime: "🌅 7:30 AM",
+    ausTime: "🌙 12:00 AM",
+    speaker: "NARRATOR",
+    speakerClass: "speaker-narrator",
+    text: "Every day starts the same. Boo Boo wakes up in Gurgaon, sunlight on her face... And Cookie is still awake in Perth, missing her like crazy. 14,500 km apart. But somehow, every morning, they're together.",
+    choices: null,
+    bgMood: "morning"
+  },
+  {
+    id: 1,
+    label: "THE MORNING TEXT",
+    indiaTime: "🌅 7:32 AM",
+    ausTime: "🌙 12:02 AM",
+    speaker: "BOO BOO 🌸",
+    speakerClass: "speaker-booboo",
+    text: "Good morning, Cookie! 🍪 Did you sleep? Tell me you slept!! I had the nicest dream... we were somewhere really pretty together~",
+    choices: ["[ Tell her the truth ]", "[ Lie and say 'yes babe!' ]"],
+    choiceResult: ["Cookie: ...I didn't sleep at all. Was just looking at your photos. 😅", "Cookie: Of course I slept! (narrator: he definitely did not.) 🙈"],
+    bgMood: "morning"
+  },
+  {
+    id: 2,
+    label: "THE LONG DISTANCE STRUGGLE",
+    indiaTime: "🌆 2:00 PM",
+    ausTime: "🕕 6:30 PM",
+    speaker: "COOKIE 🍪",
+    speakerClass: "speaker-cookie",
+    text: "Boo Boo... do you ever just randomly feel me hugging you? Because I keep sending invisible hugs every hour. Just so you know. The WiFi might be slow but the love is always on full bars. 📶♥",
+    choices: null,
+    bgMood: "evening"
+  },
+  {
+    id: 3,
+    label: "BOO BOO CHECKS IN",
+    indiaTime: "🌆 3:00 PM",
+    ausTime: "🕖 7:30 PM",
+    speaker: "BOO BOO 🌸",
+    speakerClass: "speaker-booboo",
+    text: "I ate daal chawal today. It was SO good. But you know what? It would've tasted 10x better if you were here stealing from my plate like you always do... 😤🍚 I miss my annoying Cookie!!",
+    choices: ["[ Steal the daal chawal anyway ]", "[ Promise to cook it for her ]"],
+    choiceResult: ["Cookie: *reaches through phone screen* MINE NOW! 🍚🍪", "Cookie: Come home safe and I'll make you the best daal chawal you've ever had. My daal chawal is legendary. Trust me on this one. 😤🍚"],
+    bgMood: "evening"
+  },
+  {
+    id: 4,
+    label: "THE NIGHT CALL",
+    indiaTime: "🌙 10:00 PM",
+    ausTime: "🌙 2:30 AM",
+    speaker: "NARRATOR",
+    speakerClass: "speaker-narrator",
+    text: "Every night, no matter how tired they are... they call. Cookie pretends he's not tired. Boo Boo pretends she's not sleepy. They both fall asleep on call. Neither hangs up first. That's love.",
+    choices: null,
+    bgMood: "night"
+  },
+  {
+    id: 5,
+    label: "THE STAR GAME",
+    indiaTime: "🌙 10:30 PM",
+    ausTime: "🌙 3:00 AM",
+    speaker: "COOKIE 🍪",
+    speakerClass: "speaker-cookie",
+    text: "Hey Boo Boo... look outside. You see those stars? I'm looking at the same sky. We're under the same universe right now. That's pretty cool, right? 🌟 Also please come home safe soon, I'm running out of snacks.",
+    choices: ["[ Count stars together ]", "[ Send a heart across the sky ]"],
+    choiceResult: ["Both: *counting* 1... 2... 3... *Boo Boo falls asleep at 4* 😴", "Cookie shoots a ♥ from Perth — it lands perfectly in Agra! 💫"],
+    bgMood: "night"
+  },
+  {
+    id: 6,
+    label: "THE COUNTDOWN",
+    indiaTime: "📅 SOON...",
+    ausTime: "📅 SO SOON...",
+    speaker: "BOO BOO 🌸",
+    speakerClass: "speaker-booboo",
+    text: "Cookie... I'm coming back soon. You better have cleaned the place. And please — PLEASE — buy some proper groceries. Not just chips and energy drinks. Okay?? ...I really really miss you though. 🥺",
+    choices: null,
+    bgMood: "night"
+  },
+  {
+    id: 7,
+    label: "REUNION INCOMING ✈",
+    indiaTime: "🛫 READY...",
+    ausTime: "🛬 WAITING...",
+    speaker: "NARRATOR",
+    speakerClass: "speaker-narrator",
+    text: "Two people. Two countries. One love story. The distance is temporary. The love is permanent. Cookie is counting the days. Boo Boo is packing her bags. And somewhere between Gurgaon and Perth... a heart is flying home safe. 💕",
+    choices: null,
+    bgMood: "night",
+    isFinal: true
+  }
+];
+
+let currentScene = 0;
+let animFrame = 0;
+let typingTimer = null;
+let isTyping = false;
+let mapProgress = 0;
+let selectedChoice = null;
+let lovePower = 5;
+
+const boobooCanvas = document.getElementById('booboo-canvas');
+const cookieCanvas = document.getElementById('cookie-canvas');
+const bbCtx = boobooCanvas.getContext('2d');
+const ckCtx = cookieCanvas.getContext('2d');
+const mapCanvas = document.getElementById('map-canvas');
+const mapCtx = mapCanvas.getContext('2d');
+
+function startGame() {
+  document.getElementById('title-screen').style.display = 'none';
+  document.getElementById('game-container').style.display = 'block';
+  loadScene(0);
+  animateCharacters();
+}
+
+function animateCharacters() {
+  drawBooBooo(bbCtx, animFrame);
+  drawCookie(ckCtx, animFrame);
+  drawMap(mapCtx, mapProgress);
+  animFrame++;
+  requestAnimationFrame(animateCharacters);
+}
+
+function typeText(text, callback) {
+  const el = document.getElementById('dialogue-text');
+  if (typingTimer) clearInterval(typingTimer);
+  isTyping = true;
+  let i = 0;
+  el.innerHTML = '';
+  typingTimer = setInterval(() => {
+    if (i < text.length) {
+      el.innerHTML = text.substring(0, i+1) + '<span class="cursor-blink"></span>';
+      i++;
+    } else {
+      el.innerHTML = text;
+      isTyping = false;
+      if (callback) callback();
+      clearInterval(typingTimer);
+    }
+  }, 28);
+}
+
+function loadScene(idx) {
+  const s = scenes[idx];
+  currentScene = idx;
+
+  // Update progress
+  document.getElementById('progress-fill').style.width = ((idx / (scenes.length-1)) * 100) + '%';
+  document.getElementById('scene-label').textContent = `SCENE ${idx+1} / ${scenes.length}`;
+
+  // Update map progress
+  mapProgress = idx / (scenes.length - 1);
+
+  // Update times
+  document.getElementById('india-side').querySelector('.location-tag').innerHTML = `📍 GURGAON, INDIA<br><small style="font-size:10px">${s.indiaTime}</small>`;
+  document.getElementById('aus-side').querySelector('.location-tag').innerHTML = `📍 PERTH, AU<br><small style="font-size:10px">${s.ausTime}</small>`;
+
+  // Dialogue
+  document.getElementById('dialogue-speaker').innerHTML = `<span class="${s.speakerClass}">${s.speaker}</span>`;
+  typeText(s.text);
+
+  // Choices
+  const choicesEl = document.getElementById('choices-container');
+  choicesEl.innerHTML = '';
+  selectedChoice = null;
+
+  if (s.choices) {
+    s.choices.forEach((c, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'choice-btn';
+      btn.textContent = c;
+      btn.onclick = () => {
+        document.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        selectedChoice = i;
+        // Show response
+        setTimeout(() => {
+          typeText(s.choiceResult[i]);
+          spawnHearts();
+        }, 300);
+      };
+      choicesEl.appendChild(btn);
+    });
+  }
+
+  // Nav
+  document.getElementById('prev-btn').disabled = idx === 0;
+  document.getElementById('next-btn').textContent = idx === scenes.length-1 ? 'ENDING ♥' : 'NEXT ▶';
+
+  // Scene fade
+  document.getElementById('scene').classList.remove('scene-fade');
+  void document.getElementById('scene').offsetWidth;
+  document.getElementById('scene').classList.add('scene-fade');
+}
+
+function nextScene() {
+  if (currentScene < scenes.length - 1) {
+    loadScene(currentScene + 1);
+  } else {
+    showFinalScreen();
+  }
+}
+
+function prevScene() {
+  if (currentScene > 0) {
+    loadScene(currentScene - 1);
+  }
+}
+
+function showFinalScreen() {
+  document.getElementById('game-container').style.display = 'none';
+  const fs = document.getElementById('final-screen');
+  fs.style.display = 'flex';
+  document.getElementById('final-message').innerHTML =
+    `Boo Boo... this tiny pixel game is just a small way of saying:<br><br>
+     The distance is hard. The waiting is hard. But YOU are worth every single second.<br><br>
+     Cookie loves you from the bottom of his crumbly little heart. 🍪<br><br>
+     Come home safe soon. I miss you more than words. 💕`;
+  spawnHearts(20);
+}
+
+function replayGame() {
+  document.getElementById('final-screen').style.display = 'none';
+  document.getElementById('game-container').style.display = 'block';
+  loadScene(0);
+}
+
+function spawnHearts(count = 5) {
+  for (let i = 0; i < count; i++) {
+    setTimeout(() => {
+      const h = document.createElement('div');
+      h.className = 'heart-float';
+      h.textContent = ['♥','💕','🌸','💖','✨'][Math.floor(Math.random()*5)];
+      h.style.left = Math.random() * 90 + 5 + 'vw';
+      h.style.bottom = '10vh';
+      h.style.fontSize = (16 + Math.random() * 16) + 'px';
+      document.body.appendChild(h);
+      setTimeout(() => h.remove(), 3000);
+    }, i * 200);
+  }
+}
+
+// Click anywhere on dialogue to speed through typing
+document.addEventListener('click', (e) => {
+  if (e.target.classList.contains('nav-btn') || e.target.classList.contains('choice-btn') || e.target.classList.contains('start-btn')) return;
+  if (isTyping) {
+    clearInterval(typingTimer);
+    const s = scenes[currentScene];
+    document.getElementById('dialogue-text').innerHTML = s.text;
+    isTyping = false;
+  }
+});
+
+// Spawn hearts occasionally
+setInterval(() => {
+  if (document.getElementById('game-container').style.display !== 'none') {
+    if (Math.random() < 0.3) spawnHearts(1);
+  }
+}, 4000);
+</script>
+</body>
+</html>
